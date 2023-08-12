@@ -1,0 +1,39 @@
+Our team needs to create a tool to create a fucntion that will take in user input for a file in the same directory the program itself is being run. The requirement is for the user to enter just the name of the program, for example, the user would enter main.py. The system needs to understand what directory it is in so the user input can be taken with just the name of the python module. The system will open a new terminal with PowerShell and run the program the users input. the program will record the output of the program and save it to a file with a unique name, to prevent overwriting the file contents. The program will then pass the output of the program, including if errors are thrown or if the program runs successfully. This will then be passed to openai leveraging chatCompletions, for reference a proper implementation of openai Chatcompletions is below. Always remember to not deviate from the structure of the below code, you may change the parameters but not the structure or model depicted below:
+def tool_creation_task_list(
+    task_description: str,  # Python function to test, as a string
+    unit_test_package: str = "pytest",  # unit testing package; use the name as it appears in the import statement
+    approx_min_cases_to_cover: int = 4,  # minimum number of test case categories to cover (approximate)
+    print_text: bool = True,  # optionally prints text; helpful for understanding the function & debugging
+    explain_model: str = "gpt-4-0613",  # model used to generate text plans in step 1
+    plan_model: str = "gpt-4-0613",  # model used to generate text plans in steps 2 and 2b
+    execute_model: str = "gpt-4-0613",  # model used to generate code in step 3
+    temperature: float = 0.4,  # temperature = 0 can sometimes get stuck in repetitive loops, so we use 0.4
+    reruns_if_fail: int = 1,  # if the output code cannot be parsed, this will re-run the function up to N times
+) -> str:
+    """Returns a task list to create a tool, using a 4-step GPT prompt."""
+
+    # Step 1: Understanding the Task
+    explain_system_message = {
+        "role": "system",
+        "content": "You are a seasoned Python developer and a creative problem solver. You understand complex tasks and translate them into actionable plans. Please carefully analyze the user's requirements for the Python tool they need."
+    }
+    explain_user_message = {
+        "role": "user",
+        "content": f"I need a Python tool that {task_description}. Can you help me understand how this can be implemented?"
+    }
+    explain_messages = [explain_system_message, explain_user_message]
+
+    explanation_response = openai.ChatCompletion.create(
+        model=explain_model,
+        messages=explain_messages,
+        temperature=temperature,
+        stream=True,
+    )
+    explanation = ""
+    for chunk in explanation_response:
+        delta = chunk["choices"][0]["delta"]
+        if print_text:
+            print_message_delta(delta)
+        if "content" in delta:
+            explanation += delta["content"]
+    explain_assistant_message = {"role": "assistant", "content": explanation}

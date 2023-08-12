@@ -1,0 +1,31 @@
+# Import necessary modules
+import datetime
+import os
+
+# Extract the code from the execution string
+code = execution.split("
+
+import datetime
+import os
+
+# Extract the code from the execution string
+code = execution.split("```python")[1].split("```")[0].strip()
+
+# Get the current timestamp and convert it to a string
+timestamp = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
+
+# Create a base filename and append the timestamp to create a unique filename
+base_filename = "output"
+filename = f"{base_filename}_{timestamp}.py"
+
+# Check if a file already exists with the same name
+counter = 1
+while os.path.isfile(filename):
+    # If a file exists, append an additional number to the filename to make it unique
+    filename = f"{base_filename}_{timestamp}_{counter}.py"
+    counter += 1
+
+# Open the file with the unique filename in write mode
+with open(filename, "w") as file:
+    # Write the extracted code to the file
+    file.write(code)
